@@ -445,6 +445,7 @@ export function withVoice<TBase extends AgentLike>(
         }
 
         if (!signal.aborted) {
+          this.#cm.updateAgentContext(connection.id, text);
           this.saveMessage("assistant", text);
           this.#sendJSON(connection, { type: "status", status: "listening" });
         }
@@ -479,6 +480,7 @@ export function withVoice<TBase extends AgentLike>(
           }
 
           if (!signal.aborted) {
+            this.#cm.updateAgentContext(connection.id, text);
             this.#sendJSON(connection, {
               type: "status",
               status: "listening"
@@ -646,6 +648,7 @@ export function withVoice<TBase extends AgentLike>(
           if (signal.aborted) return;
 
           if (fullText && fullText.trim().length > 0) {
+            this.#cm.updateAgentContext(connection.id, fullText);
             this.saveMessage("assistant", fullText);
           }
           this.#sendJSON(connection, { type: "status", status: "listening" });
@@ -778,6 +781,9 @@ export function withVoice<TBase extends AgentLike>(
           total_ms: totalMs
         });
 
+        // Feed the agent's spoken reply back to the transcriber as context for
+        // the user's next turn (no-op for providers without context carryover).
+        this.#cm.updateAgentContext(connection.id, fullText);
         this.saveMessage("assistant", fullText);
         this.#sendJSON(connection, { type: "status", status: "listening" });
       } catch (error) {
